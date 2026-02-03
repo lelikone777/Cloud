@@ -106,16 +106,22 @@ export default async function CharacterPage({ params }: CharacterPageProps) {
 }
 
 export async function generateStaticParams() {
-  const firstPage = await getCharacters({ page: 1 });
-  const totalPages = firstPage.info.pages;
-  const allResults = [...firstPage.results];
+  const MAX_PAGES = 3;
 
-  if (totalPages > 1) {
-    const pages = await Promise.all(
-      Array.from({ length: totalPages - 1 }, (_, index) => getCharacters({ page: index + 2 }))
-    );
-    pages.forEach((page) => allResults.push(...page.results));
+  try {
+    const firstPage = await getCharacters({ page: 1 });
+    const totalPages = Math.min(firstPage.info.pages, MAX_PAGES);
+    const allResults = [...firstPage.results];
+
+    if (totalPages > 1) {
+      const pages = await Promise.all(
+        Array.from({ length: totalPages - 1 }, (_, index) => getCharacters({ page: index + 2 }))
+      );
+      pages.forEach((page) => allResults.push(...page.results));
+    }
+
+    return allResults.map((character) => ({ id: String(character.id) }));
+  } catch {
+    return [];
   }
-
-  return allResults.map((character) => ({ id: String(character.id) }));
 }

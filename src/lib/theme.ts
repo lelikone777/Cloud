@@ -6,9 +6,9 @@ export const layoutStyles = {
 };
 
 export const cardStyles = {
-  shell: "overflow-hidden rounded-3xl bg-base-800 shadow-card",
+  shell: "mx-auto w-full max-w-[420px] overflow-hidden rounded-3xl bg-base-850 shadow-card sm:max-w-none",
   image: "aspect-[4/3] w-full object-cover",
-  body: "space-y-4 px-6 pb-6 pt-5",
+  body: "space-y-5 px-5 pb-6 pt-5 sm:px-6",
   title: "text-2xl font-semibold text-white",
   subtitle: "text-sm font-medium text-slate-200",
   metaLabel: "text-sm text-slate-400",

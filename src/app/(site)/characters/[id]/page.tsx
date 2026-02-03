@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCharacter, getCharacters } from "@/features/characters/api";
+import { getCharacter } from "@/features/characters/api";
 import { getEpisodesByIds } from "@/features/episodes/api";
 import { StatusBadge } from "@/components/ui/Badge";
 import { buttonStyles, cardStyles, layoutStyles } from "@/lib/theme";
@@ -103,25 +103,4 @@ export default async function CharacterPage({ params }: CharacterPageProps) {
       </div>
     </section>
   );
-}
-
-export async function generateStaticParams() {
-  const MAX_PAGES = 3;
-
-  try {
-    const firstPage = await getCharacters({ page: 1 });
-    const totalPages = Math.min(firstPage.info.pages, MAX_PAGES);
-    const allResults = [...firstPage.results];
-
-    if (totalPages > 1) {
-      const pages = await Promise.all(
-        Array.from({ length: totalPages - 1 }, (_, index) => getCharacters({ page: index + 2 }))
-      );
-      pages.forEach((page) => allResults.push(...page.results));
-    }
-
-    return allResults.map((character) => ({ id: String(character.id) }));
-  } catch {
-    return [];
-  }
 }

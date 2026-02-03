@@ -1,26 +1,49 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { FiltersPanel } from "@/components/filters/FiltersPanel";
 import { Pagination } from "@/components/ui/Pagination";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { layoutStyles } from "@/lib/theme";
-import { getParam } from "@/lib/query";
 import { getEpisodes } from "@/features/episodes/api";
 import { EpisodeCard } from "@/features/episodes/components/EpisodeCard";
+import type { EpisodeResponse } from "@/features/episodes/types";
 
-export default async function EpisodesPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const params = await searchParams;
-  const page = Number(getParam(params, "page") ?? 1);
-  const name = getParam(params, "name") ?? "";
-  const episode = getParam(params, "episode") ?? "";
+export default function EpisodesPage() {
+  const searchParams = useSearchParams();
+  const [data, setData] = useState<EpisodeResponse | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const data = await getEpisodes({
-    page,
-    name: name || undefined,
-    episode: episode || undefined,
-  }).catch(() => null);
+  const page = Number(searchParams.get("page") ?? 1);
+  const name = searchParams.get("name") ?? "";
+  const episode = searchParams.get("episode") ?? "";
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    getEpisodes({
+      page,
+      name: name || undefined,
+      episode: episode || undefined,
+    })
+      .then((response) => {
+        if (!active) return;
+        setData(response);
+      })
+      .catch(() => {
+        if (!active) return;
+        setData(null);
+      })
+      .finally(() => {
+        if (!active) return;
+        setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [page, name, episode]);
 
   const results = data?.results ?? [];
   const totalPages = data?.info.pages ?? 1;
@@ -35,14 +58,18 @@ export default async function EpisodesPage({
         <p className="text-sm text-slate-500">{data?.info.count ?? 0} total</p>
       </header>
 
-      <FiltersPanel>
+      <FiltersPanel key={`${name}-${episode}`}>
         <SearchInput name="name" placeholder="Search by name" defaultValue={name} />
         <SearchInput name="episode" placeholder="Episode code (S01E01)" defaultValue={episode} />
         <div />
         <div />
       </FiltersPanel>
 
-      {results.length === 0 ? (
+      {loading ? (
+        <div className="rounded-3xl border border-base-800 bg-base-850 p-10 text-center text-slate-400">
+          Loading episodes...
+        </div>
+      ) : results.length === 0 ? (
         <div className="rounded-3xl border border-base-800 bg-base-850 p-10 text-center text-slate-400">
           No episodes found. Try adjusting the filters.
         </div>

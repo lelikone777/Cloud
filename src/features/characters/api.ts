@@ -1,6 +1,6 @@
 import { fetchApi } from "@/lib/api";
 import { buildQuery } from "@/lib/query";
-import type { CharacterResponse } from "./types";
+import type { Character, CharacterResponse } from "./types";
 
 type CharacterQuery = {
   page?: number;
@@ -20,4 +20,8 @@ export async function getCharacters(params: CharacterQuery) {
   });
 
   return fetchApi<CharacterResponse>(`/character${query}`, { cache: "no-store" });
+}
+
+export async function getCharacter(id: number, init?: RequestInit) {
+  return fetchApi<Character>(`/character/${id}`, { cache: "force-cache", ...init });
 }
